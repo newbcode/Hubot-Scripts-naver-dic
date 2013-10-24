@@ -18,23 +18,44 @@ sub load {
 sub dic_process {
     my $msg = shift;
     my $user_input = $msg->match->[0];
-    print "$user_input\n";
 
     $msg->http("http://dic.naver.com/search.nhn?dicQuery=$user_input&query=$user_input&target=dic&ie=utf8&query_utf=&isOnlyViewEE=")->get(
             sub { 
                 my ( $body, $hdr )  = @_;
                 return if ( !$body || $hdr->{Status} !~ /^2/ );
                 my $decode_body = decode ("utf-8", $body);
+                my $kr_define;
+                my @en_define;
 
-                if ( $decode_body =~ m{<span class="word_class">(.*)</span>} ) {
-                    my $word_class = $1;
-                    $msg->send($word_class);
+                if ( $user_input =~ /^[\w+]/ ) {
+                    if ( $decode_body =~ m{<!--  krdic -->(.*?)<!--  krdic -->}gsm ) {
+                        my $krdic = $1;
+
+                        if ( $krdic =~ m{<br>\s*\d{1,}\.\s*(.+)\s*<br>}g ) {
+                            $kr_define = $1;
+                        }
+                        elsif ( $krdic =~ m{\s*(.+)\s*<br>}g ) {
+                            $kr_define = $1;
+                        }
+                    }
+
+                    if ( $decode_body =~ m{<!-- endic -->(.*?)<!-- endic -->}gsm ) {
+                        my $endic = $1;
+
+                        if ( $endic =~ m{\d{1,}\.(.+)</br>}g ) {
+                            my $en_wr_define = $1;
+                            p $en_wr_define;
+                        }
+
+                        @en_define = @{[ $endic =~ m/<a href="javascript:endicAutoLink([^\s]+);"/g ]}[0,1,2];
+
+                    }
+                    $msg->send("KO -[$kr_define]");
+                    $msg->send("EN -[@en_define]");
                 }
-                my @word_a_define =  $decode_body =~ m{<br>\s*\d{1,}\.\s*(.+)\s*<br>}g; 
-                #my @word_a_define =  $decode_body =~ m{<br>[\s.\d]*(.+)\s*<br>}g; 
-
-                p @word_a_define;
-
+                else {
+                    $msg->send("In English");
+                }
             }
         );
 }
