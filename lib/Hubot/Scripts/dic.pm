@@ -27,7 +27,12 @@ sub dic_process {
                 my $kr_define;
                 my @en_define;
 
-                if ( $user_input =~ /^[\w+]/ ) {
+                if ( $user_input =~ /perl/i ) { 
+                    $msg->send('The best programming language perl.');
+                    return;
+                }
+
+                if ( $user_input =~ /\p{Hangul}/ ) {
                     if ( $decode_body =~ m{<!--  krdic -->(.*?)<!--  krdic -->}gsm ) {
                         my $krdic = $1;
 
@@ -37,6 +42,7 @@ sub dic_process {
                         elsif ( $krdic =~ m{\s*(.+)\s*<br>}g ) {
                             $kr_define = $1;
                         }
+                    $msg->send("KO -[$kr_define]");
                     }
 
                     if ( $decode_body =~ m{<!-- endic -->(.*?)<!-- endic -->}gsm ) {
@@ -44,17 +50,38 @@ sub dic_process {
 
                         if ( $endic =~ m{\d{1,}\.(.+)</br>}g ) {
                             my $en_wr_define = $1;
-                            p $en_wr_define;
                         }
+                        @en_define = @{[ $endic =~ m/<a href="javascript:endicAutoLink([^\s]+);"/g ]}[0,1,2];
+                    }
+                    $msg->send("EN -[@en_define]") if (@en_define);
+                }
 
+                elsif ( $user_input =~ /\p{Latin}/ ) {
+                    if ( $decode_body =~ m{<!-- endic -->(.*?)<!-- endic -->}gsm ) {
+                        my $endic = $1;
+
+                        @en_define = @{[ $endic =~ m/(\d{1,}\..*?)<br>/g ]}[0,1,2];
+                        $msg->send("EN->KO -[@en_define]");
+                    }
+                }
+                elsif ( $user_input =~ /\p{Number}/ ) {
+                    if ( $decode_body =~ m{<!-- endic -->(.*?)<!-- endic -->}gsm ) {
+                        my $endic = $1;
                         @en_define = @{[ $endic =~ m/<a href="javascript:endicAutoLink([^\s]+);"/g ]}[0,1,2];
 
+                        $msg->send("EN -[@en_define]");
                     }
+                    if ( $decode_body =~ m{<!--  krdic -->(.*?)<!--  krdic -->}gsm ) {
+                        my $krdic = $1;
+
+                        if ( $krdic =~ m{<br>\s*\d{1,}\.\s*(.+)\s*<br>}g ) {
+                            $kr_define = $1;
+                        }
+                        elsif ( $krdic =~ m{\s*(.+)\s*<br>}g ) {
+                            $kr_define = $1;
+                        }
                     $msg->send("KO -[$kr_define]");
-                    $msg->send("EN -[@en_define]");
-                }
-                else {
-                    $msg->send("In English");
+                    }
                 }
             }
         );
@@ -69,7 +96,7 @@ sub dic_process {
  
 =head1 SYNOPSIS
 
-    dic <word> 
+    dic <word> - Word Search  
 
 =head1 AUTHOR
 
