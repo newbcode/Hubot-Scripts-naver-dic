@@ -36,11 +36,21 @@ sub dic_process {
                     if ( $decode_body =~ m{<!--  krdic -->(.*?)<!--  krdic -->}gsm ) {
                         my $krdic = $1;
 
-                        if ( $krdic =~ m{<br>\s*\d{1,}\.\s*(.+)\s*<br>}g ) {
+                        if ( $krdic =~ m{<br>\s*\d{1,}\.\s*&lt;(.+)&gt;\s*(.+)\s*<br>}g ) {
+                            $kr_define = "<$1>$2";
+                        }
+                        elsif ( $krdic =~ m{<br>\s*\d{1,}\.\s*(.+)\s*<br>}g ) {
                             $kr_define = $1;
                         }
-                        elsif ( $krdic =~ m{\s*(.+)\s*<br>}g ) {
+                        elsif ( $krdic =~ m{<br>\s*\d{1,}\.&lt;.+&gt;\s*(.+)\s*<br>}g ) {
                             $kr_define = $1;
+                        }
+                        elsif ( $krdic =~ m{\s+(.*?) ‘<a class="direct" }g ) {
+                            $kr_define = $1;
+                        }
+                        elsif ( $krdic =~ m{\s*&lt;.+&gt;\s*(.+)}g ) {
+                            $kr_define = $1;
+                            $kr_define =~ s/[<b><\/<b>]//g;
                         }
                         elsif ( $krdic =~ m{<em>(.*?)</em>에 대한 검색결과가 없습니다. }g ) {
                             $kr_define = $1;
