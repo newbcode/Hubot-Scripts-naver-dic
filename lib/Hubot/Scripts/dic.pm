@@ -42,6 +42,9 @@ sub dic_process {
                         elsif ( $krdic =~ m{\s*(.+)\s*<br>}g ) {
                             $kr_define = $1;
                         }
+                        elsif ( $krdic =~ m{<em>(.*?)</em>에 대한 검색결과가 없습니다. }g ) {
+                            $kr_define = $1;
+                        }
                     $msg->send("KO -[$kr_define]");
                     }
 
@@ -54,6 +57,11 @@ sub dic_process {
                         @en_define = @{[ $endic =~ m/<a href="javascript:endicAutoLink([^\s]+);"/g ]}[0,1,2];
                     }
                     $msg->send("EN -[@en_define]") if (@en_define);
+
+                    if ( $decode_body =~ m{<em>(.*?)</em>에 대한 검색결과가 없습니다}gsm ) {
+                        $msg->send("No results found for $user_input");
+                    }
+
                 }
 
                 elsif ( $user_input =~ /\p{Latin}/ ) {
@@ -62,6 +70,9 @@ sub dic_process {
 
                         @en_define = @{[ $endic =~ m/(\d{1,}\..*?)<br>/g ]}[0,1,2];
                         $msg->send("EN->KO -[@en_define]");
+                    }
+                    elsif ( $decode_body =~ m{<em>(.*?)</em>에 대한 검색결과가 없습니다}gsm ) {
+                        $msg->send("No results found for $user_input");
                     }
                 }
                 elsif ( $user_input =~ /\p{Number}/ ) {
