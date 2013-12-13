@@ -26,6 +26,7 @@ sub dic_process {
                 my $decode_body = decode ("utf-8", $body);
                 my $kr_define;
                 my @en_define;
+                my $en_word_define;
 
                 if ( $user_input =~ /perl/i ) { 
                     $msg->send('The best programming language perl.');
@@ -56,36 +57,47 @@ sub dic_process {
                             $kr_define = $1;
                         }
                         else {
-                            $kr_define = "국어사전 검색 없음";
+                            $kr_define = "국어사전 검색결과 없음";
                         }
                     $msg->send("KO -[$kr_define]");
                     }
 
                     if ( $decode_body =~ m{<!-- endic -->(.*?)<!-- endic -->}gsm ) {
                         my $endic = $1;
+                        @en_define = @{[ $endic =~ m/<a href="javascript:endicAutoLink([^\s]+);"/g ]}[0,1,2];
 
                         if ( $endic =~ m{\d{1,}\.(.+)</br>}g ) {
-                            my $en_wr_define = $1;
+                            $en_word_define = $1;
                         }
-                        @en_define = @{[ $endic =~ m/<a href="javascript:endicAutoLink([^\s]+);"/g ]}[0,1,2];
+                        elsif ($endic =~ m{<a href="javascript:endicAutoLink([^\s]+);"}g ) {
+                            $en_word_define = $1;
+                        }
                     }
-                    $msg->send("EN -[@en_define]") if (@en_define);
+                    $msg->send("EN -[$en_word_define]");
 
                     if ( $decode_body =~ m{<em>(.*?)</em>에 대한 검색결과가 없습니다}gsm ) {
-                        $msg->send("No results found for $user_input");
+                        $msg->send("No results found for '$user_input'");
                     }
-
                 }
 
                 elsif ( $user_input =~ /\p{Latin}/ ) {
                     if ( $decode_body =~ m{<!-- endic -->(.*?)<!-- endic -->}gsm ) {
                         my $endic = $1;
 
-                        @en_define = @{[ $endic =~ m/(\d{1,}\..*?)<br>/g ]}[0,1,2];
-                        $msg->send("EN->KO -[@en_define]");
+                        @en_define = @{[ $endic =~ m/(\d{1,}\..*?)<br>/g ]}[0];
+                        if ( $endic =~ m{(\d{1,}\..*?)<br>}g ) {
+                            $en_word_define = $1;
+                        }
+                        elsif ( $endic =~ m{<dd>\s*(\p{Hangul}+)\s*<\/dd>}g ) {
+                            $en_word_define = $1;
+                        }
+                        else {
+                            $en_word_define = "영어사전 검색결과 없음"; 
+                        }
+                        $msg->send("EN->KO -[$en_word_define]") ;
                     }
                     elsif ( $decode_body =~ m{<em>(.*?)</em>에 대한 검색결과가 없습니다}gsm ) {
-                        $msg->send("No results found for $user_input");
+                        $msg->send("No results found for '$user_input'");
                     }
                 }
                 elsif ( $user_input =~ /\p{Number}/ ) {
