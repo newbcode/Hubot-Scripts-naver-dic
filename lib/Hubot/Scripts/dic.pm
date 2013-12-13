@@ -55,6 +55,9 @@ sub dic_process {
                         elsif ( $krdic =~ m{<em>(.*?)</em>에 대한 검색결과가 없습니다. }g ) {
                             $kr_define = $1;
                         }
+                        else {
+                            $kr_define = "국어사전 검색 없음";
+                        }
                     $msg->send("KO -[$kr_define]");
                     }
 
