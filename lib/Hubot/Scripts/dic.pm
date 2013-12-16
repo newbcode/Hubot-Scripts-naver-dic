@@ -64,14 +64,14 @@ sub dic_process {
                         elsif ( $krdic =~ m{<br>\s*\d{1,}\.&lt;.+&gt;\s*(.+)\s*<br>}g ) {
                             $kr_define = $1;
                         }
-                        elsif ( $krdic =~ m{\s+(.*?) ‘<a class="direct" }g ) {
-                            $kr_define = $1;
-                        }
-                        elsif ( $krdic =~ m{\s*&lt;.+&gt;\s*(.+)}g ) {
+                        elsif ( $krdic =~ m{\s*(.+)\s+<br>}g ) {
                             $kr_define = $1;
                             $kr_define =~ s/[<b><\/<b>]//g;
                         }
-                        elsif ( $krdic =~ m{<em>(.*?)</em>에 대한 검색결과가 없습니다. }g ) {
+                        elsif ( $krdic =~ m{\s*&lt;.+&gt;\s*(.+)}g ) {
+                            $kr_define = $1;
+                        }
+                                                elsif ( $krdic =~ m{<em>(.*?)</em>에 대한 검색결과가 없습니다. }g ) {
                             $kr_define = $1;
                         }
 
@@ -79,7 +79,6 @@ sub dic_process {
                     $msg->send("KO -[$kr_define]");
                     }
                 }
-
 
                 elsif ( $user_input =~ /\p{Latin}/ ) {
                     if ( $decode_body =~ m{<!-- endic -->(.*?)<!-- endic -->}gsm ) {
