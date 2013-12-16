@@ -39,14 +39,13 @@ sub dic_process {
                         my $endic = $1;
                         @en_define = @{[ $endic =~ m/<a href="javascript:endicAutoLink([^\s]+);"/g ]}[0,1,2];
 
-                        if ( $endic =~ m{\d{1,}\.(.+)</br>}g ) {
-                            $en_word_define = $1;
+                        if ($en_define[0] =~ /^\s*/) {
+                            $msg->send("EN -[영어사전 검색결과 없음]");
                         }
-                        elsif ($endic =~ m{<a href="javascript:endicAutoLink([^\s]+);"}g ) {
-                            $en_word_define = $1;
+                        else {
+                            $msg->send("EN -[@en_define]");
                         }
                     }
-                    $msg->send("EN -[@en_define]");
 
                     if ( $decode_body =~ m{<em>(.*?)</em>에 대한 검색결과가 없습니다}gsm ) {
                         $msg->send("No results found for '$user_input'");
@@ -71,7 +70,7 @@ sub dic_process {
                         elsif ( $krdic =~ m{\s*&lt;.+&gt;\s*(.+)}g ) {
                             $kr_define = $1;
                         }
-                                                elsif ( $krdic =~ m{<em>(.*?)</em>에 대한 검색결과가 없습니다. }g ) {
+                        elsif ( $krdic =~ m{<em>(.*?)</em>에 대한 검색결과가 없습니다. }g ) {
                             $kr_define = $1;
                         }
 
