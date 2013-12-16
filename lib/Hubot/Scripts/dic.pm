@@ -38,7 +38,6 @@ sub dic_process {
                     if ( $decode_body =~ m{<!-- endic -->(.*?)<!-- endic -->}gsm ) {
                         my $endic = $1;
                         @en_define = @{[ $endic =~ m/<a href="javascript:endicAutoLink([^\s]+);"/g ]}[0,1,2];
-                        p @en_define;
 
                         if (!defined($en_define[0])) {
                             $msg->send("EN -[영어사전 검색결과 없음]");
